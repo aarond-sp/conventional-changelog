@@ -33,7 +33,7 @@ const preset = { name: 'angular' };
 const getOptions = (options, git = { commit: false, tag: false }) => [
   {
     ci: true,
-    git: { commit: git.commit, tag: git.tag, push: false, requireUpstream: false },
+    git: { commit: git.commit, tag: git.tag, push: false, requireUpstream: false, requireCleanWorkingDir: false },
     plugins: { [pathname]: [namespace, options] }
   },
   { log }
@@ -54,8 +54,12 @@ const setup = () => {
   const dir = mkTmpDir();
   sh.pushd(dir);
   sh.exec(`git init .`);
+  sh.exec(`git config user.email "test@test.com"`);
+  sh.exec(`git config user.name "Test User"`);
   add('fix', 'foo');
   sh.ShellString('{ "hooks": {} }').toEnd('.release-it.json');
+  sh.exec(`git add .release-it.json`);
+  sh.exec(`git commit -m "chore: add release-it config"`);
   return { dir };
 };
 
@@ -440,7 +444,7 @@ test('should generate changelog with origin urls', async () => {
 
   const url = 'https://github.com/release-it/conventional-changelog';
   sh.exec(`git tag 1.0.0`);
-  sh.exec(`git remote add origin ${url}`)
+  sh.exec(`git remote add origin ${url}`);
   add('fix', 'bar');
   add('feat', 'baz');
 
